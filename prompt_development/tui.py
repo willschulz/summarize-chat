@@ -44,10 +44,6 @@ from rich.prompt import Prompt, Confirm
 from rich.panel import Panel
 from rich.style import Style
 from pick import pick
-# from rich.layout import Layout
-# from rich.text import Text
-# from rich.progress import Progress
-# from rich.columns import Columns
 
 # Version checks
 assert openai.version.VERSION >= "0.27.0", "Update OpenAI API version"
@@ -63,8 +59,6 @@ def parse_args():
     parser.add_argument("--wandb-project", type=str,
                         default='robo-enumerator',
                         help=("W&B project title"))
-    # parser.add_argument("--ask-prompt", action='store_false',
-    #                     help=("If False, instructions are read from files."))
     parser.add_argument("--disable-wandb", action='store_true')
     args = parser.parse_args()
     return args
@@ -95,10 +89,7 @@ style_help = Style(color="blue")
 initial_instructions = SystemMessagePromptTemplate(
     prompt = PromptTemplate(
         template = "{system_instructions}",
-        input_variables=["system_instructions"])
-        # template = "{enumerator_instructions}\n\n{question_battery}",
-        # input_variables = ["enumerator_instructions", "question_battery"])
-)
+        input_variables=["system_instructions"]))
 
 
 class ChatAgentTUI():
@@ -120,7 +111,7 @@ class ChatAgentTUI():
             except KeyboardInterrupt:
                 self.save_conversation(wandb_log=not self.args.disable_wandb, local_log=True)
                 exit()
-    
+
     def start_process(self):
         "Get ball rolling by asking for system prompt."
         prompt_file, _ = pick(
@@ -141,7 +132,7 @@ class ChatAgentTUI():
         self.console.print(
             "[bold][Robo-Enumerator][/bold]\n"+
             result.generations[0][0].text, style=style_bot)
-    
+
     def ask_user(self):
         user_input = Prompt.ask("[User Response]\n", console=self.console)
         self.message_history.append(HumanMessage(content=user_input))
@@ -149,7 +140,7 @@ class ChatAgentTUI():
     def run(self):
         self.ask_user()
         self.call_agent()
-    
+
     def save_conversation(self, wandb_log: bool=True, local_log: bool=True):
         # Write message_history to file
         history = [_convert_message_to_dict(message)
@@ -163,6 +154,7 @@ class ChatAgentTUI():
                       for msg in history])
             self.wandb_run.log({"System Instruction": self.system_prompt.content})
             self.wandb_run.log({"Message History": table})
+        # Create local log
         if local_log:
             savefile = Path(
                 "logs/chatbot_log_{}.json".format(
@@ -180,3 +172,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

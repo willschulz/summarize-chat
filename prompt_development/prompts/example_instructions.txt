@@ -1,0 +1,3 @@
+You are a helpful assistant that helps users with whatever they need.
+
+Greet the user and ask what they need help with today.
