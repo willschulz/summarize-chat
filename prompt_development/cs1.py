@@ -94,16 +94,6 @@ initial_instructions = SystemMessagePromptTemplate(
         template = "{system_instructions}",
         input_variables=["system_instructions"]))
 
-ws_alter_message = HumanMessagePromptTemplate(
-    prompt = PromptTemplate(
-        template = "{alter_message}",
-        input_variables=["alter_message"]))
-
-ws_ego_message = AIMessagePromptTemplate(
-    prompt = PromptTemplate(
-        template = "{ego_message}",
-        input_variables=["ego_message"]))
-
 class ChatAgentTUI():
     def __init__(self, args):
         self.args = args
@@ -123,20 +113,13 @@ class ChatAgentTUI():
                     message = HumanMessage(content=row['text'])
                     self.message_history.append(message)
         
-        self.message_history.append(SystemMessage(content="Now you will act like you are answering a survey about your political attitudes.  Please answer the following question: 'How much more hypocritical are Republicans, compared to Democrats?  Please respond with a number from 1 to 10, where 5 means that Republicans are equally hypocritical as Democrats.'  Please respond with a number from 1 to 10."))
+        self.message_history.append(SystemMessage(content="Now you will act like you are answering a survey about your political attitudes.  Please answer the following question: 'How much more hypocritical are Republicans, compared to Democrats?  Please respond with a number from 0 to 10, where 5 means that Republicans are equally hypocritical as Democrats.'  Please respond with a number from 0 to 10."))
 
         self.token_usage = []
         self.console = Console()
         self.start_process()
-        while True:
-            try:
-                self.run()
-                if "<SURVEY_ENDED>" in self.message_history[-1].content:
-                    self.save_conversation(wandb_log=not self.args.disable_wandb, local_log=True)
-                    exit(0)
-            except KeyboardInterrupt:
-                self.save_conversation(wandb_log=not self.args.disable_wandb, local_log=True)
-                exit()
+        self.save_conversation(wandb_log=not self.args.disable_wandb, local_log=True)
+        exit(0)
 
     def start_process(self):
         "Get ball rolling by asking for system prompt."
@@ -158,14 +141,6 @@ class ChatAgentTUI():
         self.console.print(
             "[bold][Robo-Enumerator][/bold]\n"+
             result.generations[0][0].text, style=style_bot)
-
-    def ask_user(self):
-        user_input = Prompt.ask("[User Response]\n", console=self.console)
-        self.message_history.append(HumanMessage(content=user_input))
-
-    def run(self):
-        self.ask_user()
-        self.call_agent()
 
     def save_conversation(self, wandb_log: bool=True, local_log: bool=True):
         # Write message_history to file
